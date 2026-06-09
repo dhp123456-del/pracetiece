@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ôn Tập – 60 Câu Ngẫu Nhiên</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1a1a2e;padding:20px}
+
+  /* ── Header ── */
+  h1{text-align:center;font-size:1.6rem;color:#0f3460;margin-bottom:4px}
+  .subtitle{text-align:center;color:#666;font-size:.9rem;margin-bottom:18px}
+
+  /* ── Config panel ── */
+  .config-panel{
+    background:#fff;border-radius:12px;padding:20px 24px;
+    box-shadow:0 2px 10px rgba(0,0,0,.09);margin-bottom:22px;
+  }
+  .config-panel h2{font-size:1rem;color:#0f3460;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .config-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
+  .config-row label{font-size:.9rem;font-weight:600;color:#333;min-width:160px}
+  .num-input{
+    width:70px;padding:6px 10px;border:2px solid #3a86ff;border-radius:8px;
+    font-size:1rem;font-weight:700;text-align:center;color:#0f3460;outline:none
+  }
+  .num-input:focus{border-color:#e94560}
+  .toggle-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:4px}
+  .tog{
+    padding:7px 18px;border:2px solid #3a86ff;border-radius:20px;
+    background:#fff;color:#3a86ff;font-weight:600;font-size:.85rem;
+    cursor:pointer;transition:all .18s;user-select:none
+  }
+  .tog.on{background:#3a86ff;color:#fff}
+  .tog:hover{opacity:.85}
+
+  /* ── Start / action buttons ── */
+  .start-row{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:6px}
+  .btn-start{
+    padding:11px 38px;border:none;border-radius:9px;font-size:1rem;
+    font-weight:700;cursor:pointer;transition:opacity .18s
+  }
+  .btn-start:hover{opacity:.85}
+  .btn-generate{background:#0f3460;color:#fff}
+  .btn-again   {background:#e94560;color:#fff}
+
+  /* ── Progress bar ── */
+  #progress-wrap{display:none;margin-bottom:18px}
+  .prog-label{font-size:.85rem;color:#555;margin-bottom:5px;text-align:center}
+  .prog-bar-bg{background:#dce3f0;border-radius:99px;height:10px;overflow:hidden}
+  .prog-bar-fill{height:100%;background:linear-gradient(90deg,#3a86ff,#e94560);border-radius:99px;transition:width .3s}
+
+  /* ── Score box ── */
+  #score-box{
+    display:none;text-align:center;font-size:1.25rem;font-weight:700;
+    padding:16px 20px;background:#0f3460;color:#fff;
+    border-radius:12px;margin-bottom:20px;line-height:1.7
+  }
+  .grade-tag{
+    display:inline-block;padding:3px 14px;border-radius:20px;
+    font-size:.85rem;font-weight:700;margin-left:8px;vertical-align:middle
+  }
+
+  /* ── Legend ── */
+  .legend{
+    display:flex;gap:16px;justify-content:center;
+    margin-bottom:18px;font-size:.83rem;flex-wrap:wrap
+  }
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:13px;height:13px;border-radius:3px;display:inline-block;flex-shrink:0}
+
+  /* ── Question card ── */
+  .quiz-card{
+    background:#fff;border-radius:10px;padding:18px 22px;
+    margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);
+    border-left:4px solid #3a86ff;position:relative
+  }
+  .q-num{
+    position:absolute;top:14px;right:16px;
+    background:#f0f4f8;color:#888;font-size:.78rem;
+    font-weight:700;padding:2px 8px;border-radius:10px
+  }
+  .question-text{font-weight:600;margin-bottom:12px;line-height:1.55;font-size:.96rem;padding-right:50px}
+  .options label{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:8px 12px;border-radius:7px;cursor:pointer;
+    margin-bottom:6px;border:1.5px solid #e0e0e0;
+    background:#fafafa;transition:background .15s;
+    font-size:.92rem;line-height:1.4
+  }
+  .options label:hover{background:#e8f0fe;border-color:#3a86ff}
+  .options input[type=radio]{margin-top:3px;flex-shrink:0}
+  .result-correct{background:#d4edda!important;border-color:#28a745!important}
+  .result-wrong  {background:#f8d7da!important;border-color:#dc3545!important}
+  .result-answer {background:#fff3cd!important;border-color:#ffc107!important}
+
+  /* ── Bottom buttons ── */
+  .btn-row{display:flex;justify-content:center;gap:14px;margin:26px 0 10px;flex-wrap:wrap}
+  .btn-action{
+    padding:11px 32px;border:none;border-radius:9px;
+    font-size:.97rem;cursor:pointer;font-weight:700;transition:opacity .18s
+  }
+  .btn-action:hover{opacity:.85}
+  #btn-submit{background:#0f3460;color:#fff}
+  #btn-redo  {background:#28a745;color:#fff}
+  #btn-new   {background:#e94560;color:#fff}
+
+  /* ── Nav ── */
+  .nav-links{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:8px}
+  .nav-links a{color:#3a86ff;font-weight:600;text-decoration:none;font-size:.9rem}
+  .nav-links a:hover{text-decoration:underline}
+
+  /* ── Empty state ── */
+  #empty-state{
+    text-align:center;padding:60px 20px;color:#aaa;
+    font-size:1.05rem;display:block
+  }
+  #empty-state .big{font-size:3rem;display:block;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<h1>🎲 Ôn Tập Ngẫu Nhiên</h1>
+<p class="subtitle">Rút ngẫu nhiên từ ngân hàng <b>120 câu</b> Embedded Systems</p>
+
+<!-- Config Panel -->
+<div class="config-panel">
+  <h2>⚙️ Cài đặt đề thi</h2>
+
+  <div class="config-row">
+    <label>📋 Số câu muốn lấy:</label>
+    <input class="num-input" type="number" id="num-q" value="60" min="1" max="120">
+    <span style="font-size:.85rem;color:#888">/ 120 câu</span>
+  </div>
+
+  <div class="toggle-row">
+    <div class="tog on" id="tog-q" onclick="toggle('tog-q','shuffleQ')">🔀 Tráo thứ tự câu: BẬT</div>
+    <div class="tog on" id="tog-a" onclick="toggle('tog-a','shuffleA')">🔀 Trộn đáp án: BẬT</div>
+  </div>
+
+  <div class="start-row">
+    <button class="btn-start btn-generate" onclick="startQuiz()">🎲 Tạo đề ngẫu nhiên</button>
+  </div>
+</div>
+
+<!-- Progress -->
+<div id="progress-wrap">
+  <p class="prog-label" id="prog-label">0 / 0 câu đã trả lời</p>
+  <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-fill" style="width:0%"></div></div>
+</div>
+
+<!-- Score -->
+<div id="score-box"></div>
+
+<!-- Legend -->
+<div class="legend">
+  <span><span class="dot" style="background:#28a745"></span>Đúng</span>
+  <span><span class="dot" style="background:#dc3545"></span>Sai (bạn chọn)</span>
+  <span><span class="dot" style="background:#ffc107"></span>Đáp án đúng</span>
+</div>
+
+<!-- Quiz area -->
+<div id="quiz-container">
+  <div id="empty-state">
+    <span class="big">🎯</span>
+    Nhấn <b>Tạo đề ngẫu nhiên</b> để bắt đầu!
+  </div>
+</div>
+
+<!-- Action buttons (hidden until quiz built) -->
+<div class="btn-row" id="action-row" style="display:none">
+  <button class="btn-action" id="btn-submit" onclick="submitQuiz()">✅ Nộp bài</button>
+  <button class="btn-action" id="btn-redo"   onclick="redoQuiz()">🔄 Làm lại đề này</button>
+  <button class="btn-action" id="btn-new"    onclick="startQuiz()">🎲 Đề mới</button>
+</div>
+
+<div class="nav-links">
+  <a href="quiz_1_60.html">📄 Câu 1–60 (cố định)</a>
+  <a href="quiz_61_120.html">📄 Câu 61–120 (cố định)</a>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  FULL 120-question bank
+// ─────────────────────────────────────────────
+const BANK = [
+  { q:"1. Which of the following is not an essential component of an embedded system?", opts:["Microprocessor","Ram","Keyboard","Input/output device"], ans:2 },
+  { q:"2. Which of the following is true about interruption latency in an embedded system?", opts:["It is the time between the occurrence of an interruption and the start of its processing.","It is the time between the start of interrupting processing and the completion of interruption processing.","It is the time taken by the system to acknowledge an interruption.","It is the time taken by the system to return from an interruption."], ans:0 },
+  { q:"3. Which of the following is a real-time operating system (RTOS)?", opts:["Windows","Linux","VxWorks","MacOS"], ans:2 },
+  { q:"4. Which of the following is not a type of microcontroller architecture?", opts:["Harvard","Von Neumann","ARM","RISC"], ans:2 },
+  { q:"5. Which of the following is true about firmware in an embedded system?", opts:["It is software that is stored in read-only memory (ROM).","It is software that is stored in random access memory (RAM).","It is software that is stored on a hard disk.","It is software that is executed by the microcontroller."], ans:0 },
+  { q:"6. Which of the following is an example of an analog-to-digital converter (ADC)?", opts:["SPI","UART","I2C","SAR"], ans:3 },
+  { q:"7. Which of the following is an example of a digital-to-analog converter (DAC)?", opts:["SPI","UART","I2C","R-2R ladder"], ans:3 },
+  { q:"8. Which of the following is true about watchdog timers in an embedded system?", opts:["They are used to monitor the system clock.","They are used to monitor the power supply.","They are used to monitor the system state.","They are used to monitor the temperature."], ans:2 },
+  { q:"9. Which of the following is true about power management in an embedded system?", opts:["It is not necessary in battery-powered systems.","It is typically implemented using hardware and software techniques.","It is not important for systems that operate continuously.","It is only important for systems with high power requirements."], ans:1 },
+  { q:"10. Which of the following is true about real-time constraints in an embedded system?", opts:["They are not important for non-critical applications.","They can be relaxed if necessary to improve system performance.","They are typically specified in terms of response time and deadline.","They are only important for systems with simple control logic."], ans:2 },
+  { q:"11. Which of the following is a technique for reducing power consumption in an embedded system?", opts:["Increasing the clock frequency","Increasing the supply voltage","Using hardware accelerators","Using high-power peripherals"], ans:2 },
+  { q:"12. Which of the following is true about system-on-chip (SoC) design?", opts:["It involves integrating multiple chips into a single circuit board.","It involves integrating multiple components into a single chip.","It is only used in high-end embedded systems.","It is not compatible with real-time operating systems."], ans:1 },
+  { q:"13. Which of the following is true about system testing in an embedded system?", opts:["It is not necessary if the software is thoroughly tested.","It is typically performed using simulation tools.","It is only important for safety-critical systems.","It involves testing the hardware, software, and system-level functionality."], ans:3 },
+  { q:"14. Which of the following is true about interrupts in an embedded system?", opts:["They are always asynchronous.","They are always synchronous.","They can be either synchronous or asynchronous.","They are not used in real-time systems."], ans:2 },
+  { q:"15. Which of the following is true about the CAN bus?", opts:["It is a hardware-based communication protocol.","It is only used in low-speed communication applications.","It is a master-slave communication protocol.","It is a peer-to-peer communication protocol."], ans:3 },
+  { q:"16. Which of the following is true about SPI communication?", opts:["It is a half-duplex communication protocol.","It is a full-duplex communication protocol.","It is a synchronous communication protocol.","It is a peer-to-peer communication protocol."], ans:2 },
+  { q:"17. Which of the following is true about I2C communication?", opts:["It is a half-duplex communication protocol.","It is a full-duplex communication protocol.","It is a synchronous communication protocol.","It is a peer-to-peer communication protocol."], ans:2 },
+  { q:"18. An embedded system is a combination of _______.", opts:["Software and Devices","Hardware and Devices","Hardware and software","Devices and application software"], ans:2 },
+  { q:"19. Which of the following are hardware components of an embedded system?", opts:["Computer processor","Device peripherals","Computer memory","Computer processor, memory and Device peripherals"], ans:3 },
+  { q:"20. Which of the following is true about UART communication?", opts:["It is a half-duplex communication protocol.","It is a full-duplex communication protocol.","It is a synchronous communication protocol.","It is a peer-to-peer communication protocol."], ans:1 },
+  { q:"21. Which of the following is true about DMA in an embedded system?", opts:["It is not used in real-time systems.","It stands for \"Direct Memory Access.\"","It is used for communicating with peripherals.","It is a type of interrupt."], ans:1 },
+  { q:"22. Which of the following is true about bootloaders in an embedded system?", opts:["They are used to load the operating system.","They are used to load the application software.","They are stored in volatile memory.","They are not important for system security."], ans:0 },
+  { q:"23. Which of the following is true about real-time operating systems (RTOS) in an embedded system?", opts:["They are only used in large-scale systems.","They are not important for system performance.","They provide deterministic scheduling of tasks.","They provide non-deterministic scheduling of tasks."], ans:2 },
+  { q:"24. Which of the following is true about the memory hierarchy in an embedded system?", opts:["The CPU cache is the largest and slowest level of memory.","The main memory is the smallest and fastest level of memory.","The secondary storage is the smallest and slowest level of memory.","The memory hierarchy is used to balance speed and capacity."], ans:3 },
+  { q:"25. Which of the following is true about digital signal processing (DSP) in an embedded system?", opts:["It is only used in audio and video processing.","It can be used for a variety of signal processing applications.","It requires an analog signal as input.","It is slower than analog signal processing."], ans:1 },
+  { q:"26. Which of the following is true about serial communication in an embedded system?", opts:["It is only used for short-distance communication.","It is slower than parallel communication.","It is more complex than parallel communication.","It is used for both short and long-distance communication."], ans:3 },
+  { q:"27. Which of the following is true about analog-to-digital conversion (ADC) in an embedded system?", opts:["It is used for converting digital signals to analog signals.","It is used for converting analog signals to digital signals.","It is not important for sensor applications.","It is faster than digital-to-analog conversion."], ans:1 },
+  { q:"28. Which of the following is true about pulse-width modulation (PWM) in an embedded system?", opts:["It is used for digital-to-analog conversion.","It is used for analog-to-digital conversion.","It is used for controlling the duty cycle of a signal.","It is used for synchronizing signals."], ans:2 },
+  { q:"29. Which of the following is true about inter-integrated circuit (I2C) in an embedded system?", opts:["It is a high-speed serial communication interface.","It is a low-speed serial communication interface.","It is a parallel communication interface.","It is used for audio and video processing."], ans:1 },
+  { q:"30. Which of the following is true about universal asynchronous receiver-transmitter (UART) in an embedded system?", opts:["It is a low-speed serial communication interface.","It is a high-speed serial communication interface.","It is a parallel communication interface.","It is used for audio and video processing."], ans:0 },
+  { q:"31. Which of the following is true about sensors in an embedded system?", opts:["They are used for processing digital signals.","They are used for converting analog signals to digital signals.","They are used for storing data.","They are used for transmitting data."], ans:1 },
+  { q:"32. Which of the following is true about actuators in an embedded system?", opts:["They are used for processing digital signals.","They are used for converting analog signals to digital signals.","They are used for storing data.","They are used for controlling physical systems."], ans:3 },
+  { q:"33. Which of the following is true about the pulse width modulation (PWM) technique in an embedded system?", opts:["It is used for analog-to-digital conversion.","It is used for controlling physical systems.","It is used for event-driven systems.","It is used for digital signal processing."], ans:1 },
+  { q:"34. Which of the following is true about the inter-integrated circuit (I2C) protocol in an embedded system?", opts:["It is a high-speed serial communication interface.","It is a low-speed serial communication interface.","It is a parallel communication interface.","It is used for audio and video processing."], ans:1 },
+  { q:"35. Which of the following is true about the serial peripheral interface (SPI) protocol in an embedded system?", opts:["It is a high-speed serial communication interface.","It is a low-speed serial communication interface.","It is a parallel communication interface.","It is used for audio and video processing."], ans:0 },
+  { q:"36. Which of the following is true about the universal asynchronous receiver-transmitter (UART) interface in an embedded system?", opts:["It is a high-speed serial communication interface.","It is a low-speed serial communication interface.","It is a parallel communication interface.","It is used for audio and video processing."], ans:1 },
+  { q:"37. Which of the following is true about the direct memory access (DMA) technique in an embedded system?", opts:["It is used for analog-to-digital conversion.","It is used for controlling physical systems.","It is used for transferring data between memory and peripherals.","It is used for event-driven systems."], ans:2 },
+  { q:"38. Which of the following is true about the watchdog timer (WDT) in an embedded system?", opts:["It is used for analog-to-digital conversion.","It is used for controlling physical systems.","It is used for detecting system errors and resetting the system.","It is used for event-driven systems."], ans:2 },
+  { q:"39. Which of the following is true about the system on a chip (SoC) in an embedded system?", opts:["It consists of only the microcontroller and memory.","It consists of only the microcontroller and peripherals.","It consists of the microcontroller, memory, and peripherals on a single chip.","It consists of the microcontroller, memory, and peripherals on separate chips."], ans:2 },
+  { q:"40. Which of the following is true about the real-time operating system (RTOS) in an embedded system?", opts:["It is only used in large-scale embedded systems.","It is not suitable for time-critical applications.","It provides a multitasking environment with predictable response times.","It does not provide any support for task scheduling."], ans:2 },
+  { q:"41. Which of the following is true about the firmware in an embedded system?", opts:["It is a type of software that runs on the host computer.","It is a type of hardware that controls the operation of the microcontroller.","It is a type of software that is permanently stored in memory.","It is a type of software that is used for debugging and testing."], ans:2 },
+  { q:"42. Which of the following is true about the device driver in an embedded system?", opts:["It is a type of hardware that controls the operation of the microcontroller.","It is a type of software that is permanently stored in memory.","It is a type of software that interacts with the hardware peripherals.","It is a type of software that provides a user interface."], ans:2 },
+  { q:"43. Which of the following is true about the boot loader in an embedded system?", opts:["It is a type of hardware that controls the operation of the microcontroller.","It is a type of software that is permanently stored in memory.","It is a type of software that loads the operating system into memory.","It is a type of software that provides a user interface."], ans:2 },
+  { q:"44. Which of the following is true about the watchdog timer in an embedded system?", opts:["It is a type of software that is used for debugging and testing.","It is a type of hardware that controls the operation of the microcontroller.","It is a type of hardware that provides a mechanism for detecting and recovering from system errors.","It is a type of software that provides a user interface."], ans:2 },
+  { q:"45. Which of the following is true about the interrupting handler in an embedded system?", opts:["It is a type of hardware that controls the operation of the microcontroller.","It is a type of software that is used for debugging and testing.","It is a type of software that handles interrupts generated by the hardware peripherals.","It is a type of software that provides a user interface."], ans:2 },
+  { q:"46. Which of the following is true about the system clock in an embedded system?", opts:["It is a type of hardware that controls the operation of the microcontroller.","It is a type of software that is used for debugging and testing.","It is a type of hardware that provides a mechanism for synchronizing the operation of the system components.","It is a type of software that provides a user interface."], ans:2 },
+  { q:"47. Which of the following is true about the power management unit (PMU) in an embedded system?", opts:["It is a type of hardware that controls the operation of the microcontroller.","It is a type of software that is used for debugging and testing.","It is a type of hardware that provides a mechanism for managing the power consumption of the system.","It is a type of software that provides a user interface, management, power sequencing, and power fault detection."], ans:2 },
+  { q:"48. Which of the following is true about the real-time clock (RTC) in an embedded system?", opts:["It is a type of hardware that controls the operation of the microcontroller.","It is a type of software that is used for debugging and testing.","It is a type of hardware that provides a mechanism for keeping track of the time and date.","It is a type of software that provides a user interface."], ans:2 },
+  { q:"49. Which of the following is true about the analog-to-digital converter (ADC) in an embedded system?", opts:["It is a type of hardware that controls the operation of the microcontroller.","It is a type of software that is used for debugging and testing.","It is a type of hardware that provides a mechanism for converting analog signals to digital signals.","It is a type of software that provides a user interface."], ans:2 },
+  { q:"50. Which of the following is true about the digital-to-analog converter (DAC) in an embedded system?", opts:["It is a type of hardware that controls the operation of the microcontroller.","It is a type of software that is used for debugging and testing.","It is a type of hardware that provides a mechanism for converting digital signals to analog signals.","It is a type of software that provides a user interface."], ans:2 },
+  { q:"51. Which of the following is not the hardware components of an embedded system?", opts:["Linker","Loader","Compiler","All"], ans:3 },
+  { q:"52. Which of the following designed system factors are minimized for an embedded application?", opts:["Performance","Cost and Size","Size and Performance","Performance and Cost"], ans:1 },
+  { q:"53. If the deadline of an embedded system cannot complete its task within its deadline then it is called _____ type of embedded system.", opts:["Soft real time","Hard real time","Stand alone","Networked embedded system"], ans:0 },
+  { q:"54. If the task deadline of an embedded system is completed within its deadline, then it is called ______ type of embedded system.", opts:["Soft real time","Hard real time","Stand alone","Networked embedded system"], ans:1 },
+  { q:"55. Which of the following is an example of an embedded system that completes its task within its deadline?", opts:["Microwave oven and Traffic lights","Traffic lights and Buzzer","Buzzer and Microwave","None"], ans:0 },
+  { q:"56. In which of the following embedded systems devices communicates with servers?", opts:["Soft real time","Hard real time","Stand alone","Networked embedded systems"], ans:3 },
+  { q:"57. Which of the following are the examples of networked embedded systems?", opts:["ATM machine and Smart watch","Smart watch and Micro-oven","Micro-oven and ATM","All"], ans:0 },
+  { q:"58. LAN stands for _________.", opts:["Local Area Network","Local Avoiding Network","Location Area Network","None"], ans:0 },
+  { q:"59. WAN stands for _______.", opts:["Wide Area Network","Wide Avoiding Network","Wonder Area Network","All"], ans:0 },
+  { q:"60. Which of the following software represents machine-based code in target base code and verifies errors in code?", opts:["Compiler","Assembler","Debugger","All"], ans:0 },
+  { q:"61. Which of the following embedded system software converts each line of assembly-based code to machine-based code at a time?", opts:["Compiler","Assembler","Debugger","All"], ans:1 },
+  { q:"62. Which of the following ES software are the examples of Assembler software?", opts:["C","C++","GNU","Java"], ans:2 },
+  { q:"63. Which of the following ES software are the examples of compiler software?", opts:["C","C++","All","Java"], ans:2 },
+  { q:"64. Which of the following hardware is used as alternative for an embedded system?", opts:["ICE (In-Circuit Emulator)","Emulator","Memory","Counters"], ans:0 },
+  { q:"65. Which of the following devices is volatile memory?", opts:["Flash drives","Computer BIOS","Motherboard","All"], ans:2 },
+  { q:"66. Which of the following IC are microprocessors?", opts:["MC6800","8085","8086","All"], ans:3 },
+  { q:"67. Which of the following IC are microcontrollers?", opts:["MC6800 and 8051","8051 and ATmega328","ATmega328 and 8086","8086 and MC6800"], ans:1 },
+  { q:"68. 8086 type processor is designed with how many bits?", opts:["4 bit","8 bit","16 bit","32 bit"], ans:2 },
+  { q:"69. Embedded software has the following components?", opts:["Program/script","OS","Firmware","All"], ans:3 },
+  { q:"70. Which architecture in DSP reduces the execution time?", opts:["Harvard","CISC","Von Neumann","Program storage"], ans:0 },
+  { q:"71. How does an embedded system communicate with the outside world?", opts:["Memory","Output","Peripherals","Input"], ans:2 },
+  { q:"72. What is an embedded system?", opts:["A stand-alone computer system","A system that performs a variety of computing tasks","A dedicated system designed to perform a specific task","A system embedded into a network"], ans:2 },
+  { q:"73. Which programming language is widely used in embedded system development?", opts:["Python","C","JavaScript","Ruby"], ans:1 },
+  { q:"74. Which component is the heart of an embedded system?", opts:["RAM","Input Device","Microcontroller","Output Device"], ans:2 },
+  { q:"75. Which of the following best describes the software in an embedded system?", opts:["General-purpose software","Operating System","Firmware","Utility software"], ans:2 },
+  { q:"76. Which of the following is NOT a characteristic of embedded systems?", opts:["Real-time operation","Task-specific functionalities","High storage capacity","Optimized for power consumption"], ans:2 },
+  { q:"77. Embedded systems usually have __________ boot-up times.", opts:["Long","Moderate","Short","Variable"], ans:2 },
+  { q:"78. Embedded systems are generally _________.", opts:["Re-programmable","Non-reprogrammable","Often connected to the internet","Designed for multiple tasks"], ans:1 },
+  { q:"79. In embedded systems, what does \"RTOS\" stand for?", opts:["Remote Transfer Operating System","Real-Time Operating Software","Real-Time Operating System","Rapid Transfer Operating System"], ans:2 },
+  { q:"80. Which feature is essential for an RTOS?", opts:["Predictable response time","High storage capability","Multitasking capability","Internet connectivity"], ans:0 },
+  { q:"81. Embedded systems are typically designed for:", opts:["Broad functionalities","User upgradability","Specific applications","General-purpose computing"], ans:2 },
+  { q:"82. Which type of memory is typically used for permanent storage in embedded systems?", opts:["RAM","ROM","Cache","DDR"], ans:1 },
+  { q:"83. In the context of embedded systems, what does \"DSP\" stand for?", opts:["Digital Signal Processor","Dedicated System Protocol","Device Specific Programming","Digital Systems Programming"], ans:0 },
+  { q:"84. Which of the following is NOT a primary component of an embedded system?", opts:["Microcontroller","Input device","Graphics card","Output device"], ans:2 },
+  { q:"85. An advantage of embedded systems over general-purpose systems is:", opts:["Higher processing power","Greater versatility","Lower cost","Better multitasking"], ans:2 },
+  { q:"86. Which of the following best describes \"firmware\"?", opts:["Hardware components of an embedded system","Temporary software that is easy to modify","Software that provides UI for embedded systems","Software programmed directly onto hardware components"], ans:3 },
+  { q:"87. The primary purpose of an RTOS in an embedded system is to:", opts:["Enhance the user interface","Manage tasks in real-time","Provide internet connectivity","Boost the system's processing power"], ans:1 },
+  { q:"88. What kind of embedded system is used in washing machines and printers?", opts:["Standalone embedded systems","Mobile embedded systems","Networked embedded systems","Real-time embedded systems"], ans:0 },
+  { q:"89. In the context of embedded systems, \"SoC\" stands for:", opts:["Software of Communication","System of Components","System on Chip","Software on Chip"], ans:2 },
+  { q:"90. Which of the following is an example of a real-time embedded system?", opts:["Digital watch","Microwave oven","Airbag system in cars","MP3 player"], ans:2 },
+  { q:"91. What is the primary storage type used for fast data access in embedded systems?", opts:["Hard Disk Drive","Flash Memory","CD-ROM","Magnetic Tape"], ans:1 },
+  { q:"92. What is the primary role of a watchdog timer in an embedded system?", opts:["To boost performance","To reset the system if it hangs","To improve connectivity","To update the firmware"], ans:1 },
+  { q:"93. Which of this best describes the difference between an embedded OS and desktop OS?", opts:["Embedded OS is more versatile","Desktop OS is used in mobile devices","Embedded OS is tailored for specific tasks","Desktop OS has limited functionality"], ans:2 },
+  { q:"94. An embedded system's lifecycle is typically:", opts:["Shorter than that of general-purpose systems","Longer than that of general-purpose systems","Same as that of general-purpose systems","Unpredictable"], ans:1 },
+  { q:"95. A common challenge in embedded system design is:", opts:["High power consumption","Resource constraints","Easy upgradability","High storage requirements"], ans:1 },
+  { q:"96. Which one of the following offers CPUs as integrated memory or peripheral interfaces?", opts:["Microcontroller","Microprocessor","Embedded system","Memory system"], ans:0 },
+  { q:"97. What is CISC?", opts:["Computing instruction set complex","Complex instruction set computing","Complementary instruction set computing","Complex instruction set complementary"], ans:1 },
+  { q:"98. What is RISC?", opts:["Ratio instruction set complex","Reduced instruction set computing","Random instruction set computing","Rapidly instruction set complementary"], ans:1 },
+  { q:"99. What does API stand for?", opts:["Address programming interface","Application programming interface","Accessing peripheral through interface","Address programming interface (2)"], ans:1 },
+  { q:"100. Intel Pentium 4 (2004) has 3.0 GHZ clock speed and about 9000 MIPS. IPC equals:", opts:["1","2","3","4"], ans:2 },
+  { q:"101. What does IPC stand for?", opts:["Internal Processer and Controller","Instructions per Cycle","Instructions per Clock","Instructions process in computer"], ans:1 },
+  { q:"102. In little endian format:", opts:["LSB stored first (lowest address), MSB stored last (highest address).","LSB stored last (highest address), MSB stored first (lowest address).","LSB stored last (lowest address), MSB stored first (highest address).","LSB stored first (highest address), MSB stored last (lowest address)."], ans:0 },
+  { q:"103. In big endian format:", opts:["LSB stored first (lowest address), MSB stored last (highest address).","LSB stored last (highest address), MSB stored first (lowest address).","LSB stored last (lowest address), MSB stored first (highest address).","LSB stored first (highest address), MSB stored last (lowest address)."], ans:1 },
+  { q:"104. Level 1 of cache memory has:", opts:["Lowest speed","Highest speed","Biggest size","Smallest size"], ans:1 },
+  { q:"105. What does CMOS stand for?", opts:["Complementary mix operating system","Complementary metal oxide semiconductor","Carry multiplex open system","Current mobile operating system"], ans:1 },
+  { q:"106. When increasing clock speed of processor:", opts:["Instruction speed is reduced","Time of instruction process is no change","Power consumption of Chip is increased","Power consumption of Chip is decreased"], ans:2 },
+  { q:"107. ARM is the name of:", opts:["Processor architecture","Memory architecture","Communication bus","Communication standard"], ans:0 },
+  { q:"108. The memory which has a fixed content from manufacturer is:", opts:["RAM","EEPROM","MROM","Flash"], ans:2 },
+  { q:"109. To control active-low LED, how does LED connect to micro controller (µC)?", opts:["Anode→pin of µC, Cathode→Vcc","Anode→pin of µC, Cathode→Ground","Cathode→pin of µC, Anode→Vcc","Cathode→pin of µC, Anode→Ground"], ans:2 },
+  { q:"110. Translation flow from source code written in C programming to Assembly for embedded circuit is:", opts:["Pre-processor→Processor→Compiler→Loader","Processor→Compiler→Assembler→Linker/loader","Pre-processor→Compiler→Assembler→Linker/loader","Loader→Compiler→Assembler→Linker"], ans:2 },
+  { q:"111. Optimization source code from C programming to Assembly is processed in:", opts:["Processor","Linker","Compiler","Assembler"], ans:2 },
+  { q:"112. Which is not an embedded system:", opts:["Laptop","Washing machine controller","Light automotive controller","Arduino micro controller"], ans:0 },
+  { q:"113. Which is not a feature of embedded system:", opts:["Specialization","Reliability","General purpose","Compact"], ans:2 },
+  { q:"114. Embedded system can be applied to:", opts:["Medical and Industrial","Aviation and Military","Consumer and specialized electronics","All"], ans:3 },
+  { q:"115. Which is the name of an embedded system (application classification)?", opts:["Data communication","Signal amplification","Harmonic oscillator","None"], ans:0 },
+  { q:"116. Embedded system has:", opts:["Processor, memory, input data reader circuits, communication ports","Processor, memory card reader, I/O ports, communication ports","Processor, memory, I/O ports, communication ports","Processor, memory, I/O ports, USB"], ans:2 },
+  { q:"117. In the embedded system, which layer is indispensable?", opts:["Application software","Hardware","System software","Middleware"], ans:1 },
+  { q:"118. In the design of an embedded system, which does not model need specific plan?", opts:["Spiral","Waterfall","Code-and-fixed","Big-bang"], ans:3 },
+  { q:"119. Which layer is very near to the user?", opts:["Application software","System software","Hardware","Depend on package design and IC position inside an embedded system"], ans:0 },
+  { q:"120. The basic difference between Von Neumann and Harvard architecture is:", opts:["ALU structure","Register's structure","Bus and memory organization","All"], ans:2 },
+];
+
+// ─────────────────────────────────────────────
+//  State
+// ─────────────────────────────────────────────
+const LABELS = ['A','B','C','D'];
+let shuffleQ = true;
+let shuffleA = true;
+let currentQuestions = [];  // rendered list after sampling + shuffling
+
+// ── toggle helpers ──
+function toggle(btnId, varName) {
+  if (varName === 'shuffleQ') shuffleQ = !shuffleQ;
+  else shuffleA = !shuffleA;
+  const val = varName === 'shuffleQ' ? shuffleQ : shuffleA;
+  const btn = document.getElementById(btnId);
+  btn.classList.toggle('on', val);
+  btn.textContent = (varName === 'shuffleQ' ? '🔀 Tráo thứ tự câu: ' : '🔀 Trộn đáp án: ') + (val ? 'BẬT' : 'TẮT');
+}
+
+// ── Fisher-Yates shuffle ──
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ─────────────────────────────────────────────
+//  Build quiz
+// ─────────────────────────────────────────────
+function startQuiz() {
+  const rawN = parseInt(document.getElementById('num-q').value) || 60;
+  const n = Math.max(1, Math.min(120, rawN));
+  document.getElementById('num-q').value = n;
+
+  // 1. Sample n questions from bank
+  let indices = Array.from({length: BANK.length}, (_, i) => i);
+  indices = shuffle(indices).slice(0, n);
+
+  // 2. Optionally shuffle question order (already random from above, but
+  //    if shuffleQ is OFF we sort by original index so order is sequential)
+  if (!shuffleQ) indices.sort((a, b) => a - b);
+
+  // 3. For each question, optionally shuffle answer options
+  currentQuestions = indices.map(origIdx => {
+    const item = BANK[origIdx];
+    const correctText = item.opts[item.ans];
+    let optOrder = item.opts.map((_, j) => j);
+    if (shuffleA) optOrder = shuffle(optOrder);
+    const newOpts = optOrder.map(j => item.opts[j]);
+    const newAns  = newOpts.indexOf(correctText);
+    return { origIdx, q: item.q, opts: newOpts, ans: newAns };
+  });
+
+  renderQuiz();
+  document.getElementById('score-box').style.display = 'none';
+  updateProgress();
+  document.getElementById('progress-wrap').style.display = 'block';
+  document.getElementById('action-row').style.display  = 'flex';
+  window.scrollTo({top: document.querySelector('.config-panel').offsetTop - 10, behavior:'smooth'});
+}
+
+function renderQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  currentQuestions.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.id = 'card-' + i;
+
+    const optHTML = item.opts.map((opt, j) => `
+      <label id="lbl-${i}-${j}">
+        <input type="radio" name="q${i}" value="${j}" onchange="updateProgress()">
+        <span><b>${LABELS[j]}.</b> ${opt}</span>
+      </label>`).join('');
+
+    // Show original question number as badge
+    const origNum = item.q.match(/^(\d+)\./)?.[1] ?? '?';
+    card.innerHTML = `
+      <span class="q-num">Câu gốc #${origNum}</span>
+      <div class="question-text">Câu ${i+1}. ${item.q.replace(/^\d+\.\s*/,'')}</div>
+      <div class="options">${optHTML}</div>`;
+    container.appendChild(card);
+  });
+}
+
+// ── Progress bar ──
+function updateProgress() {
+  const total = currentQuestions.length;
+  const answered = currentQuestions.filter((_, i) =>
+    document.querySelector(`input[name="q${i}"]:checked`)
+  ).length;
+  const pct = total ? Math.round(answered / total * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent =
+    `${answered} / ${total} câu đã trả lời  (${pct}%)`;
+}
+
+// ─────────────────────────────────────────────
+//  Submit
+// ─────────────────────────────────────────────
+function submitQuiz() {
+  let correct = 0;
+  currentQuestions.forEach((item, i) => {
+    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+    for (let j = 0; j < item.opts.length; j++)
+      document.getElementById(`lbl-${i}-${j}`)
+        .classList.remove('result-correct','result-wrong','result-answer');
+
+    const ansLbl = document.getElementById(`lbl-${i}-${item.ans}`);
+    if (selected) {
+      const chosen = parseInt(selected.value);
+      if (chosen === item.ans) {
+        document.getElementById(`lbl-${i}-${chosen}`).classList.add('result-correct');
+        correct++;
+      } else {
+        document.getElementById(`lbl-${i}-${chosen}`).classList.add('result-wrong');
+        ansLbl.classList.add('result-answer');
+      }
+    } else {
+      ansLbl.classList.add('result-answer');
+    }
+    document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.disabled = true);
+  });
+
+  const total = currentQuestions.length;
+  const pct   = Math.round(correct / total * 100);
+  let grade = '', gradeColor = '';
+  if (pct >= 90)      { grade = '🏆 Xuất sắc!';  gradeColor = '#28a745'; }
+  else if (pct >= 75) { grade = '👍 Khá giỏi';    gradeColor = '#3a86ff'; }
+  else if (pct >= 50) { grade = '📘 Trung bình';  gradeColor = '#f39c12'; }
+  else                { grade = '💪 Cần ôn thêm'; gradeColor = '#dc3545'; }
+
+  const box = document.getElementById('score-box');
+  box.style.display = 'block';
+  box.innerHTML = `🎯 Kết quả: <b>${correct}/${total}</b> câu đúng &nbsp;(${pct}%)
+    <span class="grade-tag" style="background:${gradeColor}">${grade}</span>`;
+  box.scrollIntoView({behavior:'smooth'});
+}
+
+// ── Redo same questions (reset choices only) ──
+function redoQuiz() {
+  document.getElementById('score-box').style.display = 'none';
+  renderQuiz();
+  updateProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Keyboard shortcut: Enter = submit if all answered ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && currentQuestions.length > 0) submitQuiz();
+});
+</script>
+</body>
+</html>
