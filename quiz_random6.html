@@ -35,14 +35,37 @@
   .tog:hover{opacity:.85}
 
   /* ── Start / action buttons ── */
-  .start-row{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:6px}
+  .start-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
   .btn-start{
-    padding:11px 38px;border:none;border-radius:9px;font-size:1rem;
+    padding:11px 28px;border:none;border-radius:9px;font-size:.95rem;
     font-weight:700;cursor:pointer;transition:opacity .18s
   }
   .btn-start:hover{opacity:.85}
   .btn-generate{background:#0f3460;color:#fff}
-  .btn-again   {background:#e94560;color:#fff}
+  .btn-remaining{background:#7b2d8b;color:#fff}
+  .btn-remaining:disabled{background:#bbb;cursor:not-allowed;opacity:.6}
+
+  /* ── Remaining info bar ── */
+  #remain-bar{
+    display:none;background:#fff;border-radius:10px;padding:12px 18px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;
+    border-left:4px solid #7b2d8b;
+    display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px
+  }
+  #remain-bar.show{display:flex}
+  .remain-text{font-size:.88rem;font-weight:600;color:#444;line-height:1.5}
+  .remain-text b{color:#7b2d8b}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;max-width:100%}
+  .chip{
+    background:#f0e6f6;color:#7b2d8b;border-radius:20px;
+    padding:2px 9px;font-size:.75rem;font-weight:700
+  }
+  .chip.used{background:#fde8ec;color:#c0392b}
+  .btn-clear-hist{
+    padding:5px 14px;border:2px solid #7b2d8b;border-radius:20px;
+    background:#fff;color:#7b2d8b;font-size:.8rem;font-weight:700;cursor:pointer
+  }
+  .btn-clear-hist:hover{background:#7b2d8b;color:#fff}
 
   /* ── Progress bar ── */
   #progress-wrap{display:none;margin-bottom:18px}
@@ -101,9 +124,11 @@
     font-size:.97rem;cursor:pointer;font-weight:700;transition:opacity .18s
   }
   .btn-action:hover{opacity:.85}
-  #btn-submit{background:#0f3460;color:#fff}
-  #btn-redo  {background:#28a745;color:#fff}
-  #btn-new   {background:#e94560;color:#fff}
+  #btn-submit   {background:#0f3460;color:#fff}
+  #btn-redo     {background:#28a745;color:#fff}
+  #btn-new      {background:#e94560;color:#fff}
+  #btn-remain   {background:#7b2d8b;color:#fff}
+  #btn-remain:disabled{background:#bbb;cursor:not-allowed;opacity:.6}
 
   /* ── Nav ── */
   .nav-links{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:8px}
@@ -140,7 +165,14 @@
 
   <div class="start-row">
     <button class="btn-start btn-generate" onclick="startQuiz()">🎲 Tạo đề ngẫu nhiên</button>
+    <button class="btn-start btn-remaining" id="btn-cfg-remain" onclick="startRemaining()" disabled title="Chưa có lịch sử đề thi">📂 Thi câu còn lại</button>
   </div>
+</div>
+
+<!-- Remaining info bar -->
+<div id="remain-bar">
+  <div class="remain-text" id="remain-text"></div>
+  <button class="btn-clear-hist" onclick="clearHistory()">🗑 Xóa lịch sử</button>
 </div>
 
 <!-- Progress -->
@@ -172,6 +204,7 @@
   <button class="btn-action" id="btn-submit" onclick="submitQuiz()">✅ Nộp bài</button>
   <button class="btn-action" id="btn-redo"   onclick="redoQuiz()">🔄 Làm lại đề này</button>
   <button class="btn-action" id="btn-new"    onclick="startQuiz()">🎲 Đề mới</button>
+  <button class="btn-action" id="btn-remain" onclick="startRemaining()" disabled>📂 Thi câu còn lại</button>
 </div>
 
 <div class="nav-links">
@@ -200,7 +233,7 @@ const BANK = [
   { q:"14. Which of the following is true about interrupts in an embedded system?", opts:["They are always asynchronous.","They are always synchronous.","They can be either synchronous or asynchronous.","They are not used in real-time systems."], ans:2 },
   { q:"15. Which of the following is true about the CAN bus?", opts:["It is a hardware-based communication protocol.","It is only used in low-speed communication applications.","It is a master-slave communication protocol.","It is a peer-to-peer communication protocol."], ans:3 },
   { q:"16. Which of the following is true about SPI communication?", opts:["It is a half-duplex communication protocol.","It is a full-duplex communication protocol.","It is a synchronous communication protocol.","It is a peer-to-peer communication protocol."], ans:2 },
-  { q:"17. Which of the following is true about I2C communication?", opts:["It is a half-duplex communication protocol.","It is a full-duplex communication protocol.","It is a synchronous communication protocol.","It is a peer-to-peer communication protocol."], ans:2 },
+  { q:"17. Which of the following is true about I2C communication?", opts:["It is a half-duplex communication protocol.","It is a full-duplex communication protocol.","It is a synchronous communication protocol.","It is a peer-to-peer communication protocol."], ans:0 },
   { q:"18. An embedded system is a combination of _______.", opts:["Software and Devices","Hardware and Devices","Hardware and software","Devices and application software"], ans:2 },
   { q:"19. Which of the following are hardware components of an embedded system?", opts:["Computer processor","Device peripherals","Computer memory","Computer processor, memory and Device peripherals"], ans:3 },
   { q:"20. Which of the following is true about UART communication?", opts:["It is a half-duplex communication protocol.","It is a full-duplex communication protocol.","It is a synchronous communication protocol.","It is a peer-to-peer communication protocol."], ans:1 },
@@ -312,9 +345,12 @@ const BANK = [
 const LABELS = ['A','B','C','D'];
 let shuffleQ = true;
 let shuffleA = true;
-let currentQuestions = [];  // rendered list after sampling + shuffling
+let currentQuestions = [];   // current rendered questions
+let usedIndices = new Set();  // origIdx values already seen in this session
 
-// ── toggle helpers ──
+// ─────────────────────────────────────────────
+//  Toggle helpers
+// ─────────────────────────────────────────────
 function toggle(btnId, varName) {
   if (varName === 'shuffleQ') shuffleQ = !shuffleQ;
   else shuffleA = !shuffleA;
@@ -324,8 +360,10 @@ function toggle(btnId, varName) {
   btn.textContent = (varName === 'shuffleQ' ? '🔀 Tráo thứ tự câu: ' : '🔀 Trộn đáp án: ') + (val ? 'BẬT' : 'TẮT');
 }
 
-// ── Fisher-Yates shuffle ──
-function shuffle(arr) {
+// ─────────────────────────────────────────────
+//  Fisher-Yates shuffle
+// ─────────────────────────────────────────────
+function shuffleArr(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -335,40 +373,117 @@ function shuffle(arr) {
 }
 
 // ─────────────────────────────────────────────
-//  Build quiz
+//  Build questions from a given list of indices
 // ─────────────────────────────────────────────
-function startQuiz() {
-  const rawN = parseInt(document.getElementById('num-q').value) || 60;
-  const n = Math.max(1, Math.min(120, rawN));
-  document.getElementById('num-q').value = n;
+function buildFromIndices(indices) {
+  if (shuffleQ) indices = shuffleArr(indices);
+  else          indices = [...indices].sort((a, b) => a - b);
 
-  // 1. Sample n questions from bank
-  let indices = Array.from({length: BANK.length}, (_, i) => i);
-  indices = shuffle(indices).slice(0, n);
-
-  // 2. Optionally shuffle question order (already random from above, but
-  //    if shuffleQ is OFF we sort by original index so order is sequential)
-  if (!shuffleQ) indices.sort((a, b) => a - b);
-
-  // 3. For each question, optionally shuffle answer options
-  currentQuestions = indices.map(origIdx => {
+  return indices.map(origIdx => {
     const item = BANK[origIdx];
     const correctText = item.opts[item.ans];
     let optOrder = item.opts.map((_, j) => j);
-    if (shuffleA) optOrder = shuffle(optOrder);
+    if (shuffleA) optOrder = shuffleArr(optOrder);
     const newOpts = optOrder.map(j => item.opts[j]);
     const newAns  = newOpts.indexOf(correctText);
     return { origIdx, q: item.q, opts: newOpts, ans: newAns };
   });
+}
 
+// ─────────────────────────────────────────────
+//  🎲 New random quiz (from full bank)
+// ─────────────────────────────────────────────
+function startQuiz() {
+  const rawN = parseInt(document.getElementById('num-q').value) || 60;
+  const n = Math.max(1, Math.min(BANK.length, rawN));
+  document.getElementById('num-q').value = n;
+
+  // Pick n random indices from the whole bank
+  let allIdx = Array.from({length: BANK.length}, (_, i) => i);
+  const chosen = shuffleArr(allIdx).slice(0, n);
+
+  // Record these as used
+  chosen.forEach(i => usedIndices.add(i));
+
+  currentQuestions = buildFromIndices(chosen);
+  afterBuild('random');
+}
+
+// ─────────────────────────────────────────────
+//  📂 Quiz with REMAINING (unused) questions
+// ─────────────────────────────────────────────
+function startRemaining() {
+  const remaining = Array.from({length: BANK.length}, (_, i) => i)
+                         .filter(i => !usedIndices.has(i));
+
+  if (remaining.length === 0) {
+    alert('✅ Bạn đã ôn hết tất cả 120 câu!\n\nNhấn "Xóa lịch sử" để bắt đầu lại từ đầu.');
+    return;
+  }
+
+  const rawN = parseInt(document.getElementById('num-q').value) || 60;
+  const n = Math.max(1, Math.min(remaining.length, rawN));
+
+  // Pick n from the remaining pool
+  const chosen = shuffleArr(remaining).slice(0, n);
+  chosen.forEach(i => usedIndices.add(i));
+
+  currentQuestions = buildFromIndices(chosen);
+  afterBuild('remaining', remaining.length);
+}
+
+// ─────────────────────────────────────────────
+//  After building any quiz
+// ─────────────────────────────────────────────
+function afterBuild(mode, remainingBefore) {
   renderQuiz();
   document.getElementById('score-box').style.display = 'none';
   updateProgress();
   document.getElementById('progress-wrap').style.display = 'block';
-  document.getElementById('action-row').style.display  = 'flex';
+  document.getElementById('action-row').style.display = 'flex';
+  updateHistoryBar(mode, remainingBefore);
   window.scrollTo({top: document.querySelector('.config-panel').offsetTop - 10, behavior:'smooth'});
 }
 
+// ─────────────────────────────────────────────
+//  History / Remaining info bar
+// ─────────────────────────────────────────────
+function updateHistoryBar(mode, remainingBefore) {
+  const used = usedIndices.size;
+  const total = BANK.length;
+  const left  = total - used;
+
+  const bar  = document.getElementById('remain-bar');
+  const text = document.getElementById('remain-text');
+  bar.classList.add('show');
+
+  let modeLabel = mode === 'remaining'
+    ? `<span style="color:#7b2d8b">📂 Đề câu còn lại</span> — trước đó còn <b>${remainingBefore}</b> câu chưa thi`
+    : `<span style="color:#0f3460">🎲 Đề ngẫu nhiên mới</span>`;
+
+  text.innerHTML =
+    `${modeLabel}<br>
+     📊 Đã ôn: <b>${used}</b>/${total} câu &nbsp;|&nbsp;
+     Còn lại chưa thi: <b style="color:${left===0?'#28a745':'#e94560'}">${left}</b> câu
+     ${left === 0 ? '&nbsp;✅ <b style="color:#28a745">Đã hoàn thành toàn bộ!</b>' : ''}`;
+
+  // Enable/disable "remaining" buttons
+  const hasRemain = left > 0;
+  document.getElementById('btn-cfg-remain').disabled = !hasRemain;
+  document.getElementById('btn-remain').disabled     = !hasRemain;
+}
+
+function clearHistory() {
+  if (!confirm('Xóa toàn bộ lịch sử câu đã thi?\n(Sẽ reset về 0 câu đã ôn)')) return;
+  usedIndices.clear();
+  document.getElementById('remain-bar').classList.remove('show');
+  document.getElementById('btn-cfg-remain').disabled = true;
+  document.getElementById('btn-remain').disabled     = true;
+}
+
+// ─────────────────────────────────────────────
+//  Render quiz cards
+// ─────────────────────────────────────────────
 function renderQuiz() {
   const container = document.getElementById('quiz-container');
   container.innerHTML = '';
@@ -383,7 +498,6 @@ function renderQuiz() {
         <span><b>${LABELS[j]}.</b> ${opt}</span>
       </label>`).join('');
 
-    // Show original question number as badge
     const origNum = item.q.match(/^(\d+)\./)?.[1] ?? '?';
     card.innerHTML = `
       <span class="q-num">Câu gốc #${origNum}</span>
@@ -393,7 +507,9 @@ function renderQuiz() {
   });
 }
 
-// ── Progress bar ──
+// ─────────────────────────────────────────────
+//  Progress bar
+// ─────────────────────────────────────────────
 function updateProgress() {
   const total = currentQuestions.length;
   const answered = currentQuestions.filter((_, i) =>
@@ -447,7 +563,9 @@ function submitQuiz() {
   box.scrollIntoView({behavior:'smooth'});
 }
 
-// ── Redo same questions (reset choices only) ──
+// ─────────────────────────────────────────────
+//  Redo same questions (reset choices only)
+// ─────────────────────────────────────────────
 function redoQuiz() {
   document.getElementById('score-box').style.display = 'none';
   renderQuiz();
@@ -455,7 +573,7 @@ function redoQuiz() {
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-// ── Keyboard shortcut: Enter = submit if all answered ──
+// ── Keyboard shortcut: Enter = submit ──
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && currentQuestions.length > 0) submitQuiz();
 });
